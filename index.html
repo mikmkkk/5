@@ -104,15 +104,16 @@ function show(id){['s0','s1','s2','s3','s4'].forEach(s=>$(s).classList.add('hd')
 function toast(m){let t=$('tt');t.textContent=m;t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1500)}
 function cp(id){let e=$(id);e.select();navigator.clipboard.writeText(e.value).then(()=>toast('Copied'))}
 function cpLink(id){let v=$(id).value;let u=location.origin+location.pathname+'#'+encodeURIComponent(v);navigator.clipboard.writeText(u).then(()=>toast('Link Copied'))}
-window.addEventListener('load',()=>{if(location.hash){let d=decodeURIComponent(location.hash.slice(1));if(d){try{let o=JSON.parse(decodeURIComponent(escape(atob(d))));if(o.type==='offer'){$('t3').value=d;mkAns()}else if(o.type==='answer'){$('t2').value=d;show('s1')}}catch(e){}}}})
+function safeTrim(s){return s.replace(/[\r\n\t ]/g,'')}
+window.addEventListener('load',()=>{if(location.hash){let d=decodeURIComponent(location.hash.slice(1));if(d){try{let o=JSON.parse(decodeURIComponent(escape(atob(d))));if(o.type==='offer'){$('t3').value=d;show('s2')}else if(o.type==='answer'){$('t2').value=d;show('s1')}}catch(e){}}}})
 function qr(id,t){let c=$(id);c.innerHTML='';let s=innerWidth<400?150:180;new QRCode(c,{text:t,width:s,height:s,correctLevel:0})}
 function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
 function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s))))}
 function wait(p){return new Promise(r=>{if(p.iceGatheringState==='complete')return r();let c=()=>{if(p.iceGatheringState==='complete'){p.removeEventListener('icegatheringstatechange',c);r()}};p.addEventListener('icegatheringstatechange',c);setTimeout(r,3000)})}
 function setup(c){c.onopen=()=>{show('s4');sys('Connected')};c.onmessage=e=>add(e.data,'r');c.onclose=()=>sys('Disconnected')}
 async function mkOffer(){pc=new RTCPeerConnection(CFG);dc=pc.createDataChannel('c');setup(dc);let o=await pc.createOffer();await pc.setLocalDescription(o);await wait(pc);let k=enc(pc.localDescription);$('t1').value=k;qr('qr1',k);show('s1')}
-async function accAns(){try{let a=dec($('t2').value.trim());await pc.setRemoteDescription(new RTCSessionDescription(a))}catch(e){toast('Invalid answer')}}
-async function mkAns(){try{let o=dec($('t3').value.trim());pc=new RTCPeerConnection(CFG);pc.ondatachannel=e=>{dc=e.channel;setup(dc)};await pc.setRemoteDescription(new RTCSessionDescription(o));let a=await pc.createAnswer();await pc.setLocalDescription(a);await wait(pc);let k=enc(pc.localDescription);$('t4').value=k;qr('qr3',k);show('s3')}catch(e){toast('Invalid code')}}
+async function accAns(){try{let a=dec(safeTrim($('t2').value));await pc.setRemoteDescription(new RTCSessionDescription(a))}catch(e){toast('Invalid answer')}}
+async function mkAns(){try{let o=dec(safeTrim($('t3').value));pc=new RTCPeerConnection(CFG);pc.ondatachannel=e=>{dc=e.channel;setup(dc)};await pc.setRemoteDescription(new RTCSessionDescription(o));let a=await pc.createAnswer();await pc.setLocalDescription(a);await wait(pc);let k=enc(pc.localDescription);$('t4').value=k;qr('qr3',k);show('s3')}catch(e){toast('Invalid code')}}
 function snd(){let i=$('mi'),t=i.value.trim();if(!t||!dc||dc.readyState!=='open')return;dc.send(t);add(t,'s');i.value=''}
 function add(t,y){let b=$('cb'),tm=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}),d=document.createElement('div');d.className='m '+y;d.innerHTML=esc(t)+'<div class="t">'+tm+'</div>';b.appendChild(d);b.scrollTop=b.scrollHeight}
 function sys(t){let b=$('cb'),d=document.createElement('div');d.style.cssText='text-align:center;color:#666;font-size:.8rem;margin:8px 0';d.textContent=t;b.appendChild(d);b.scrollTop=b.scrollHeight}
