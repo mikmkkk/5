@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2P Chat</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#000;--card:#111;--b:#222;--t:#fff;--m:#888;--r:20px}
+body{background:var(--bg);color:var(--t);font-family:system-ui,sans-serif;min-height:100vh;padding:20px;font-size:15px}
+.w{max-width:520px;margin:0 auto}
+h1{font-size:1.4rem;text-align:center;margin-bottom:6px;letter-spacing:-.5px}
+.sub{text-align:center;color:var(--m);font-size:.8rem;margin-bottom:24px}
+.c{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.btn{padding:12px 20px;border:1px solid var(--b);border-radius:999px;background:transparent;color:var(--t);cursor:pointer;font:inherit;transition:.2s;min-height:44px}
+.btn:hover{background:#1a1a1a}
+.btn.p{background:var(--t);color:var(--bg);border-color:var(--t)}
+.btn.p:hover{background:#ddd}
+.btn.sm{padding:6px 14px;font-size:.8rem;min-height:32px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1;min-width:140px}
+.tl{font-size:.75rem;color:var(--m);margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:1px}
+.qr{display:flex;justify-content:center;margin:14px auto;padding:12px;background:#fff;border-radius:var(--r);width:fit-content}
+.qr img,.qr canvas{width:180px!important;height:180px!important}
+textarea{width:100%;min-height:80px;background:#1a1a1a;border:1px solid var(--b);border-radius:var(--r);color:var(--t);padding:12px;font:.8rem monospace;resize:vertical;direction:ltr;text-align:left;word-break:break-all;font-family:monospace;overflow:hidden;scrollbar-width:none}
+textarea::-webkit-scrollbar{display:none}
+.copy-row{display:flex;gap:8px;margin-top:8px}
+.copy-row .btn{flex:1}
+textarea:focus{outline:none;border-color:#444}
+.chat{height:45vh;min-height:220px;max-height:380px;overflow-y:auto;background:#0a0a0a;border:1px solid var(--b);border-radius:var(--r);padding:12px;margin-bottom:12px}
+.m{margin-bottom:8px;padding:10px 14px;border-radius:var(--r);max-width:85%;word-wrap:break-word;font-size:.9rem}
+.m.s{background:var(--t);color:var(--bg);margin-left:auto}
+.m.r{background:#1a1a1a;border:1px solid var(--b)}
+.m .t{font-size:.7rem;opacity:.5;margin-top:4px}
+.ir{display:flex;gap:8px}
+.ir input{flex:1;padding:12px 16px;border-radius:999px;border:1px solid var(--b);background:#1a1a1a;color:var(--t);font:inherit;min-height:44px}
+.ir input:focus{outline:none;border-color:#444}
+.st{text-align:center;padding:10px;border-radius:var(--r);margin:10px 0;font-size:.85rem;border:1px solid var(--b)}
+.st.w{color:#ffc107;border-color:#ffc10744}
+.st.ok{color:#4caf50;border-color:#4caf5044}
+.hd{display:none}
+.sn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--t);color:var(--bg);border-radius:50%;font-size:.75rem;margin-right:8px;font-weight:600}
+.tt{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--t);color:var(--bg);padding:8px 18px;border-radius:999px;font-size:.85rem;opacity:0;transition:.3s;z-index:999}
+.tt.s{opacity:1}
+.mt{margin-top:14px}
+@media(max-width:400px){body{padding:12px}.c{padding:16px}.qr img,.qr canvas{width:150px!important;height:150px!important}}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>Salist p2p</h1>
+
+<div id="s0" class="c">
+<span class="tl">Choose :</span>
+<div class="row">
+<button class="btn p" onclick="mkOffer()">Host</button>
+<button class="btn" onclick="show('s2')">Join</button>
+</div>
+</div>
+
+<div id="s1" class="c hd">
+<span class="tl"><span class="sn">1</span>Share this code</span>
+<div id="qr1" class="qr"></div>
+<textarea id="t1" readonly></textarea>
+<div class="copy-row">
+<button class="btn sm" onclick="cp('t1')">Copy Code</button>
+<button class="btn sm" onclick="cpLink('t1')">Copy Link</button>
+</div>
+<div class="st w">Waiting for answer...</div>
+<span class="tl mt"><span class="sn">2</span>Paste answer</span>
+<textarea id="t2" placeholder="Paste answer code..."></textarea>
+<button class="btn p mt" style="width:100%" onclick="accAns()">Connect</button>
+</div>
+
+<div id="s2" class="c hd">
+<span class="tl"><span class="sn">1</span>Paste host code</span>
+<textarea id="t3" placeholder="Paste host code..."></textarea>
+<button class="btn p mt" style="width:100%" onclick="mkAns()">Generate Answer</button>
+</div>
+
+<div id="s3" class="c hd">
+<span class="tl"><span class="sn">2</span>Share this answer</span>
+<div id="qr3" class="qr"></div>
+<textarea id="t4" readonly></textarea>
+<button class="btn sm mt" style="width:100%" onclick="cp('t4')">Copy Answer Code</button>
+<div class="st w">Connecting...</div>
+</div>
+
+<div id="s4" class="c hd">
+<div class="st ok">Connected</div>
+<div class="chat" id="cb"></div>
+<div class="ir">
+<input id="mi" placeholder="Type a message..." onkeypress="if(event.key==='Enter')snd()">
+<button class="btn p" onclick="snd()">Send</button>
+</div>
+</div>
+</div>
+<div class="tt" id="tt">Copied</div>
+<script>
+let pc,dc,CFG={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+const $=id=>document.getElementById(id);
+function show(id){['s0','s1','s2','s3','s4'].forEach(s=>$(s).classList.add('hd'));$(id).classList.remove('hd')}
+function toast(m){let t=$('tt');t.textContent=m;t.classList.add('s');setTimeout(()=>t.classList.remove('s'),1500)}
+function cp(id){let e=$(id);e.select();navigator.clipboard.writeText(e.value).then(()=>toast('Copied'))}
+function cpLink(id){let v=$(id).value;let u=location.origin+location.pathname+'#'+encodeURIComponent(v);navigator.clipboard.writeText(u).then(()=>toast('Link Copied'))}
+window.addEventListener('load',()=>{if(location.hash){let d=decodeURIComponent(location.hash.slice(1));if(d){try{let o=JSON.parse(decodeURIComponent(escape(atob(d))));if(o.type==='offer'){$('t3').value=d;mkAns()}else if(o.type==='answer'){$('t2').value=d;show('s1')}}catch(e){}}}})
+function qr(id,t){let c=$(id);c.innerHTML='';let s=innerWidth<400?150:180;new QRCode(c,{text:t,width:s,height:s,correctLevel:0})}
+function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
+function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s))))}
+function wait(p){return new Promise(r=>{if(p.iceGatheringState==='complete')return r();let c=()=>{if(p.iceGatheringState==='complete'){p.removeEventListener('icegatheringstatechange',c);r()}};p.addEventListener('icegatheringstatechange',c);setTimeout(r,3000)})}
+function setup(c){c.onopen=()=>{show('s4');sys('Connected')};c.onmessage=e=>add(e.data,'r');c.onclose=()=>sys('Disconnected')}
+async function mkOffer(){pc=new RTCPeerConnection(CFG);dc=pc.createDataChannel('c');setup(dc);let o=await pc.createOffer();await pc.setLocalDescription(o);await wait(pc);let k=enc(pc.localDescription);$('t1').value=k;qr('qr1',k);show('s1')}
+async function accAns(){try{let a=dec($('t2').value.trim());await pc.setRemoteDescription(new RTCSessionDescription(a))}catch(e){toast('Invalid answer')}}
+async function mkAns(){try{let o=dec($('t3').value.trim());pc=new RTCPeerConnection(CFG);pc.ondatachannel=e=>{dc=e.channel;setup(dc)};await pc.setRemoteDescription(new RTCSessionDescription(o));let a=await pc.createAnswer();await pc.setLocalDescription(a);await wait(pc);let k=enc(pc.localDescription);$('t4').value=k;qr('qr3',k);show('s3')}catch(e){toast('Invalid code')}}
+function snd(){let i=$('mi'),t=i.value.trim();if(!t||!dc||dc.readyState!=='open')return;dc.send(t);add(t,'s');i.value=''}
+function add(t,y){let b=$('cb'),tm=new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}),d=document.createElement('div');d.className='m '+y;d.innerHTML=esc(t)+'<div class="t">'+tm+'</div>';b.appendChild(d);b.scrollTop=b.scrollHeight}
+function sys(t){let b=$('cb'),d=document.createElement('div');d.style.cssText='text-align:center;color:#666;font-size:.8rem;margin:8px 0';d.textContent=t;b.appendChild(d);b.scrollTop=b.scrollHeight}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+</script>
+</body>
+</html>
